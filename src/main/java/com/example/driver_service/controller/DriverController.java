@@ -41,4 +41,13 @@ public class DriverController {
         VehicleResponse response = driverService.getVehicleByDriverId(driverId);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{driverId}/vehicle")
+    public ResponseEntity<VehicleResponse> updateVehicle(
+            @PathVariable Long driverId,
+            @Valid @RequestBody UpdateVehicleRequest request) {
+
+        VehicleResponse response = driverService.updateVehicleInfo(driverId, request);
+        return ResponseEntity.ok(response);
+    }
 }

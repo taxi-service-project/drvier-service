@@ -201,4 +201,38 @@ class DriverControllerTest {
         mockMvc.perform(get("/api/drivers/{driverId}/vehicle", driverId))
                .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("PUT /api/drivers/{driverId}/vehicle - 성공")
+    void updateVehicle_Success() throws Exception {
+        // given
+        long driverId = 1L;
+        UpdateVehicleRequest request = new UpdateVehicleRequest("K5", "흰색");
+        VehicleResponse mockResponse = new VehicleResponse(1L, "12가3456", "K5", "흰색");
+
+        when(driverService.updateVehicleInfo(anyLong(), any(UpdateVehicleRequest.class)))
+                .thenReturn(mockResponse);
+
+        // when & then
+        mockMvc.perform(put("/api/drivers/{driverId}/vehicle", driverId)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.model").value("K5"))
+               .andExpect(jsonPath("$.color").value("흰색"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/drivers/{driverId}/vehicle - 실패 (유효성 검증 실패)")
+    void updateVehicle_Fail_InvalidRequest() throws Exception {
+        // given
+        long driverId = 1L;
+        UpdateVehicleRequest invalidRequest = new UpdateVehicleRequest("", "흰색"); // 모델명이 비어있음
+
+        // when & then
+        mockMvc.perform(put("/api/drivers/{driverId}/vehicle", driverId)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(invalidRequest)))
+               .andExpect(status().isBadRequest());
+    }
 }

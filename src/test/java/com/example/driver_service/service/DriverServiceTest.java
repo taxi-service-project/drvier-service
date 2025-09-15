@@ -233,4 +233,32 @@ class DriverServiceTest {
         });
         verify(vehicleRepository).findByDriverId(driverId);
     }
+
+    @Test
+    @DisplayName("기사 차량 정보 수정 성공")
+    void updateVehicleInfo_Success() {
+        // given
+        long driverId = 1L;
+        Driver mockDriver = Driver.builder().build();
+        ReflectionTestUtils.setField(mockDriver, "id", driverId);
+
+        Vehicle mockVehicle = Vehicle.builder()
+                                     .driver(mockDriver)
+                                     .licensePlate("12가3456")
+                                     .model("쏘나타") // 변경 전 모델
+                                     .color("검정")   // 변경 전 색상
+                                     .build();
+
+        UpdateVehicleRequest request = new UpdateVehicleRequest("K5", "흰색");
+
+        when(vehicleRepository.findByDriverId(driverId)).thenReturn(Optional.of(mockVehicle));
+
+        // when
+        VehicleResponse response = driverService.updateVehicleInfo(driverId, request);
+
+        // then
+        assertThat(response.model()).isEqualTo("K5"); // 변경 확인
+        assertThat(response.color()).isEqualTo("흰색"); // 변경 확인
+        verify(vehicleRepository).findByDriverId(driverId);
+    }
 }

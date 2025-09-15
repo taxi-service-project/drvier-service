@@ -82,6 +82,19 @@ public class DriverService {
         return VehicleResponse.fromEntity(vehicle);
     }
 
+    @Transactional
+    public VehicleResponse updateVehicleInfo(Long driverId, UpdateVehicleRequest request) {
+        log.info("{}번 기사의 차량 정보 수정을 시작합니다.", driverId);
+
+        Vehicle vehicle = vehicleRepository.findByDriverId(driverId)
+                                           .orElseThrow(() -> new VehicleNotFoundException("해당 기사의 차량 정보를 찾을 수 없습니다. 기사 ID: " + driverId));
+
+        vehicle.updateInfo(request.model(), request.color());
+
+        log.info("{}번 기사의 차량 정보 수정 성공", driverId);
+        return VehicleResponse.fromEntity(vehicle);
+    }
+
     private void validateDriverUniqueness(DriverCreateRequest request) {
         if (driverRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException("이미 사용중인 이메일입니다.");

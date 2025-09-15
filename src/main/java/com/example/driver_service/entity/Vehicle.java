@@ -36,4 +36,9 @@ public class Vehicle {
         this.model = model;
         this.color = color;
     }
+
+    public void updateInfo(String model, String color) {
+        this.model = model;
+        this.color = color;
+    }
 }
