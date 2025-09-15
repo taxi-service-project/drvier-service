@@ -6,7 +6,6 @@ import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
 import com.example.driver_service.repository.DriverRepository;
 import com.example.driver_service.repository.VehicleRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -306,5 +305,49 @@ class DriverServiceTest {
 
         verify(redisTemplate, never()).opsForHash();
         verify(hashOperations, never()).put(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("내부용 기사 정보 조회 성공")
+    void getInternalDriverInfo_Success() {
+        // given
+        long driverId = 1L;
+        Driver mockDriver = Driver.builder().name("테스트기사").build();
+        ReflectionTestUtils.setField(mockDriver, "id", driverId);
+        ReflectionTestUtils.setField(mockDriver, "ratingAvg", 4.8);
+
+        Vehicle mockVehicle = Vehicle.builder()
+                                     .driver(mockDriver).model("K5").licensePlate("12가3456").build();
+
+        when(driverRepository.findById(driverId)).thenReturn(Optional.of(mockDriver));
+        when(vehicleRepository.findByDriverId(driverId)).thenReturn(Optional.of(mockVehicle));
+
+        // when
+        InternalDriverInfoResponse response = driverService.getInternalDriverInfo(driverId);
+
+        // then
+        assertThat(response.id()).isEqualTo(driverId);
+        assertThat(response.name()).isEqualTo("테스트기사");
+        assertThat(response.ratingAvg()).isEqualTo(4.8);
+        assertThat(response.vehicle().model()).isEqualTo("K5");
+        assertThat(response.vehicle().licensePlate()).isEqualTo("12가3456");
+
+        verify(driverRepository).findById(driverId);
+        verify(vehicleRepository).findByDriverId(driverId);
+    }
+
+    @Test
+    @DisplayName("내부용 기사 정보 조회 실패 - 기사 정보 없음")
+    void getInternalDriverInfo_Fail_DriverNotFound() {
+        // given
+        long driverId = 99L;
+        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(DriverNotFoundException.class, () -> {
+            driverService.getInternalDriverInfo(driverId);
+        });
+
+        verify(vehicleRepository, never()).findByDriverId(anyLong());
     }
 }
