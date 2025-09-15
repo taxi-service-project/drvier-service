@@ -52,5 +52,11 @@ public class Driver {
         this.status = DriverStatus.WAITING_APPROVAL;
         this.ratingAvg = 0.0;
     }
+
+    public void updateProfile(String phoneNumber, String profileImageUrl, String licenseNumber) {
+        this.phoneNumber = phoneNumber;
+        this.profileImageUrl = profileImageUrl;
+        this.licenseNumber = licenseNumber;
+    }
 }
 

@@ -3,6 +3,7 @@ package com.example.driver_service.controller;
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
 import com.example.driver_service.dto.DriverProfileResponse;
+import com.example.driver_service.dto.UpdateDriverProfileRequest;
 import com.example.driver_service.entity.DriverStatus;
 import com.example.driver_service.exception.DriverNotFoundException;
 import com.example.driver_service.exception.EmailAlreadyExistsException;
@@ -19,9 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 
 @WebMvcTest(DriverController.class)
@@ -126,5 +126,52 @@ class DriverControllerTest {
         mockMvc.perform(get("/api/drivers/{driverId}", nonExistentDriverId))
                .andExpect(status().isNotFound())
                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("PUT /api/drivers/{driverId} - 성공")
+    void updateDriverProfile_Success() throws Exception {
+        // given
+        long driverId = 1L;
+        UpdateDriverProfileRequest request = new UpdateDriverProfileRequest(
+                "010-1111-1111",
+                "http://example.com/new.jpg",
+                "11-11-111111-11"
+        );
+
+        DriverProfileResponse mockResponse = new DriverProfileResponse(
+                driverId, "test@example.com", "테스트기사",
+                request.phoneNumber(), request.licenseNumber(), request.profileImageUrl(),
+                DriverStatus.ACTIVE, 4.8
+        );
+
+        when(driverService.updateDriverProfile(anyLong(), any(UpdateDriverProfileRequest.class)))
+                .thenReturn(mockResponse);
+
+        // when & then
+        mockMvc.perform(put("/api/drivers/{driverId}", driverId)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.phoneNumber").value("010-1111-1111"))
+               .andExpect(jsonPath("$.profileImageUrl").value("http://example.com/new.jpg"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/drivers/{driverId} - 실패 (유효성 검증 실패)")
+    void updateDriverProfile_Fail_InvalidRequest() throws Exception {
+        // given
+        long driverId = 1L;
+        UpdateDriverProfileRequest invalidRequest = new UpdateDriverProfileRequest(
+                "", // Blank 값
+                "http://example.com/new.jpg",
+                "11-11-111111-11"
+        );
+
+        // when & then
+        mockMvc.perform(put("/api/drivers/{driverId}", driverId)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(invalidRequest)))
+               .andExpect(status().isBadRequest());
     }
 }

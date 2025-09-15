@@ -3,6 +3,7 @@ package com.example.driver_service.service;
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
 import com.example.driver_service.dto.DriverProfileResponse;
+import com.example.driver_service.dto.UpdateDriverProfileRequest;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
@@ -160,5 +161,39 @@ class DriverServiceTest {
         });
 
         verify(driverRepository).findById(nonExistentDriverId);
+    }
+
+    @Test
+    @DisplayName("기사 프로필 수정 성공")
+    void updateDriverProfile_Success() {
+        // given
+        long driverId = 1L;
+        Driver mockDriver = Driver.builder()
+                                  .email("test@example.com")
+                                  .password("password")
+                                  .name("테스트기사")
+                                  .phoneNumber("010-0000-0000") // 변경 전 번호
+                                  .licenseNumber("00-00-000000-00")
+                                  .profileImageUrl("http://example.com/old.jpg")
+                                  .build();
+        ReflectionTestUtils.setField(mockDriver, "id", driverId);
+
+        UpdateDriverProfileRequest request = new UpdateDriverProfileRequest(
+                "010-1111-1111", // 변경 후 번호
+                "http://example.com/new.jpg",
+                "11-11-111111-11"
+        );
+
+        when(driverRepository.findById(driverId)).thenReturn(Optional.of(mockDriver));
+
+        // when
+        DriverProfileResponse response = driverService.updateDriverProfile(driverId, request);
+
+        // then
+        assertThat(response.id()).isEqualTo(driverId);
+        assertThat(response.phoneNumber()).isEqualTo("010-1111-1111"); // 변경된 정보 확인
+        assertThat(response.profileImageUrl()).isEqualTo("http://example.com/new.jpg");
+        assertThat(response.licenseNumber()).isEqualTo("11-11-111111-11");
+        verify(driverRepository).findById(driverId);
     }
 }

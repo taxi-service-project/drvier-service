@@ -3,6 +3,7 @@ package com.example.driver_service.controller;
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
 import com.example.driver_service.dto.DriverProfileResponse;
+import com.example.driver_service.dto.UpdateDriverProfileRequest;
 import com.example.driver_service.service.DriverService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,15 @@ public class DriverController {
     @GetMapping("/{driverId}")
     public ResponseEntity<DriverProfileResponse> getDriverProfile(@PathVariable Long driverId) {
         DriverProfileResponse response = driverService.getDriverProfile(driverId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{driverId}")
+    public ResponseEntity<DriverProfileResponse> updateDriverProfile(
+            @PathVariable Long driverId,
+            @Valid @RequestBody UpdateDriverProfileRequest request) {
+
+        DriverProfileResponse response = driverService.updateDriverProfile(driverId, request);
         return ResponseEntity.ok(response);
     }
 }

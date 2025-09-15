@@ -3,6 +3,7 @@ package com.example.driver_service.service;
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
 import com.example.driver_service.dto.DriverProfileResponse;
+import com.example.driver_service.dto.UpdateDriverProfileRequest;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
@@ -54,6 +55,23 @@ public class DriverService {
                                         .orElseThrow(() -> new DriverNotFoundException("해당 ID의 기사를 찾을 수 없습니다. ID: " + driverId));
 
         log.info("{}번 기사 프로필 조회 성공", driverId);
+        return DriverProfileResponse.fromEntity(driver);
+    }
+
+    @Transactional
+    public DriverProfileResponse updateDriverProfile(Long driverId, UpdateDriverProfileRequest request) {
+        log.info("{}번 기사 프로필 수정을 시작합니다.", driverId);
+
+        Driver driver = driverRepository.findById(driverId)
+                                        .orElseThrow(() -> new DriverNotFoundException("해당 ID의 기사를 찾을 수 없습니다. ID: " + driverId));
+
+        driver.updateProfile(
+                request.phoneNumber(),
+                request.profileImageUrl(),
+                request.licenseNumber()
+        );
+
+        log.info("{}번 기사 프로필 수정 성공", driverId);
         return DriverProfileResponse.fromEntity(driver);
     }
 
