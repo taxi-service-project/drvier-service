@@ -1,9 +1,6 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.CreateDriverResponse;
-import com.example.driver_service.dto.DriverCreateRequest;
-import com.example.driver_service.dto.DriverProfileResponse;
-import com.example.driver_service.dto.UpdateDriverProfileRequest;
+import com.example.driver_service.dto.*;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
@@ -195,5 +192,45 @@ class DriverServiceTest {
         assertThat(response.profileImageUrl()).isEqualTo("http://example.com/new.jpg");
         assertThat(response.licenseNumber()).isEqualTo("11-11-111111-11");
         verify(driverRepository).findById(driverId);
+    }
+
+    @Test
+    @DisplayName("기사 차량 정보 조회 성공")
+    void getVehicleByDriverId_Success() {
+        // given
+        long driverId = 1L;
+        Driver mockDriver = Driver.builder().build(); // Vehicle 생성에 필요
+        ReflectionTestUtils.setField(mockDriver, "id", driverId);
+
+        Vehicle mockVehicle = Vehicle.builder()
+                                     .driver(mockDriver)
+                                     .licensePlate("12가3456")
+                                     .model("쏘나타")
+                                     .color("검정")
+                                     .build();
+
+        when(vehicleRepository.findByDriverId(driverId)).thenReturn(Optional.of(mockVehicle));
+
+        // when
+        VehicleResponse response = driverService.getVehicleByDriverId(driverId);
+
+        // then
+        assertThat(response.licensePlate()).isEqualTo("12가3456");
+        assertThat(response.model()).isEqualTo("쏘나타");
+        verify(vehicleRepository).findByDriverId(driverId);
+    }
+
+    @Test
+    @DisplayName("기사 차량 정보 조회 실패 - 차량 정보 없음")
+    void getVehicleByDriverId_Fail_NotFound() {
+        // given
+        long driverId = 99L;
+        when(vehicleRepository.findByDriverId(driverId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(VehicleNotFoundException.class, () -> {
+            driverService.getVehicleByDriverId(driverId);
+        });
+        verify(vehicleRepository).findByDriverId(driverId);
     }
 }

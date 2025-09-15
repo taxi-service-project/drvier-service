@@ -1,9 +1,6 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.CreateDriverResponse;
-import com.example.driver_service.dto.DriverCreateRequest;
-import com.example.driver_service.dto.DriverProfileResponse;
-import com.example.driver_service.dto.UpdateDriverProfileRequest;
+import com.example.driver_service.dto.*;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
@@ -73,6 +70,16 @@ public class DriverService {
 
         log.info("{}번 기사 프로필 수정 성공", driverId);
         return DriverProfileResponse.fromEntity(driver);
+    }
+
+    public VehicleResponse getVehicleByDriverId(Long driverId) {
+        log.info("{}번 기사의 차량 정보 조회를 시작합니다.", driverId);
+
+        Vehicle vehicle = vehicleRepository.findByDriverId(driverId)
+                                           .orElseThrow(() -> new VehicleNotFoundException("해당 기사의 차량 정보를 찾을 수 없습니다. 기사 ID: " + driverId));
+
+        log.info("{}번 기사의 차량 정보 조회 성공", driverId);
+        return VehicleResponse.fromEntity(vehicle);
     }
 
     private void validateDriverUniqueness(DriverCreateRequest request) {

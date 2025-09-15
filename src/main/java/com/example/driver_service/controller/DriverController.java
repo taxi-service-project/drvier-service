@@ -1,9 +1,6 @@
 package com.example.driver_service.controller;
 
-import com.example.driver_service.dto.CreateDriverResponse;
-import com.example.driver_service.dto.DriverCreateRequest;
-import com.example.driver_service.dto.DriverProfileResponse;
-import com.example.driver_service.dto.UpdateDriverProfileRequest;
+import com.example.driver_service.dto.*;
 import com.example.driver_service.service.DriverService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +33,12 @@ public class DriverController {
             @Valid @RequestBody UpdateDriverProfileRequest request) {
 
         DriverProfileResponse response = driverService.updateDriverProfile(driverId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{driverId}/vehicle")
+    public ResponseEntity<VehicleResponse> getVehicle(@PathVariable Long driverId) {
+        VehicleResponse response = driverService.getVehicleByDriverId(driverId);
         return ResponseEntity.ok(response);
     }
 }

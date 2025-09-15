@@ -1,12 +1,10 @@
 package com.example.driver_service.controller;
 
-import com.example.driver_service.dto.CreateDriverResponse;
-import com.example.driver_service.dto.DriverCreateRequest;
-import com.example.driver_service.dto.DriverProfileResponse;
-import com.example.driver_service.dto.UpdateDriverProfileRequest;
+import com.example.driver_service.dto.*;
 import com.example.driver_service.entity.DriverStatus;
 import com.example.driver_service.exception.DriverNotFoundException;
 import com.example.driver_service.exception.EmailAlreadyExistsException;
+import com.example.driver_service.exception.VehicleNotFoundException;
 import com.example.driver_service.service.DriverService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -173,5 +171,34 @@ class DriverControllerTest {
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(invalidRequest)))
                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("GET /api/drivers/{driverId}/vehicle - 성공")
+    void getVehicle_Success() throws Exception {
+        // given
+        long driverId = 1L;
+        VehicleResponse mockResponse = new VehicleResponse(1L, "12가3456", "쏘나타", "검정");
+
+        when(driverService.getVehicleByDriverId(driverId)).thenReturn(mockResponse);
+
+        // when & then
+        mockMvc.perform(get("/api/drivers/{driverId}/vehicle", driverId))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.licensePlate").value("12가3456"))
+               .andExpect(jsonPath("$.model").value("쏘나타"));
+    }
+
+    @Test
+    @DisplayName("GET /api/drivers/{driverId}/vehicle - 실패 (404 Not Found)")
+    void getVehicle_Fail_NotFound() throws Exception {
+        // given
+        long driverId = 99L;
+        when(driverService.getVehicleByDriverId(driverId))
+                .thenThrow(new VehicleNotFoundException("해당 기사의 차량 정보를 찾을 수 없습니다."));
+
+        // when & then
+        mockMvc.perform(get("/api/drivers/{driverId}/vehicle", driverId))
+               .andExpect(status().isNotFound());
     }
 }
