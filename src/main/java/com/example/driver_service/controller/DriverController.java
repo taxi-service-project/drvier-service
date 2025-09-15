@@ -2,15 +2,13 @@ package com.example.driver_service.controller;
 
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
+import com.example.driver_service.dto.DriverProfileResponse;
 import com.example.driver_service.service.DriverService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/drivers")
@@ -23,5 +21,11 @@ public class DriverController {
     public ResponseEntity<CreateDriverResponse> createDriver(@Valid @RequestBody DriverCreateRequest request) {
         CreateDriverResponse response = driverService.createDriver(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{driverId}")
+    public ResponseEntity<DriverProfileResponse> getDriverProfile(@PathVariable Long driverId) {
+        DriverProfileResponse response = driverService.getDriverProfile(driverId);
+        return ResponseEntity.ok(response);
     }
 }

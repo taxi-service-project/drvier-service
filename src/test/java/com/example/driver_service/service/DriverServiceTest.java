@@ -2,12 +2,10 @@ package com.example.driver_service.service;
 
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
+import com.example.driver_service.dto.DriverProfileResponse;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;
-import com.example.driver_service.exception.EmailAlreadyExistsException;
-import com.example.driver_service.exception.LicenseNumberAlreadyExistsException;
-import com.example.driver_service.exception.LicensePlateAlreadyExistsException;
-import com.example.driver_service.exception.PhoneNumberAlreadyExistsException;
+import com.example.driver_service.exception.*;
 import com.example.driver_service.repository.DriverRepository;
 import com.example.driver_service.repository.VehicleRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -117,5 +118,47 @@ class DriverServiceTest {
         assertThrows(LicensePlateAlreadyExistsException.class, () -> {
             driverService.createDriver(request);
         });
+    }
+
+    @Test
+    @DisplayName("기사 프로필 조회 성공")
+    void getDriverProfile_Success() {
+        // given (Arrange)
+        long driverId = 1L;
+        Driver mockDriver = Driver.builder()
+                                  .email("test@example.com")
+                                  .password("password")
+                                  .name("테스트기사")
+                                  .phoneNumber("010-1234-5678")
+                                  .licenseNumber("12-34-567890-11")
+                                  .profileImageUrl("http://example.com/profile.jpg")
+                                  .build();
+        ReflectionTestUtils.setField(mockDriver, "id", driverId);
+
+        // Mockito.when() 구문 사용
+        when(driverRepository.findById(driverId)).thenReturn(Optional.of(mockDriver));
+
+        // when (Act)
+        DriverProfileResponse response = driverService.getDriverProfile(driverId);
+
+        // then (Assert)
+        assertThat(response.id()).isEqualTo(driverId);
+        assertThat(response.name()).isEqualTo("테스트기사");
+        verify(driverRepository).findById(driverId);
+    }
+
+    @Test
+    @DisplayName("기사 프로필 조회 실패 - 존재하지 않는 기사")
+    void getDriverProfile_Fail_DriverNotFound() {
+        // given (Arrange)
+        long nonExistentDriverId = 99L;
+        when(driverRepository.findById(nonExistentDriverId)).thenReturn(Optional.empty());
+
+        // when & then (Act & Assert)
+        assertThrows(DriverNotFoundException.class, () -> {
+            driverService.getDriverProfile(nonExistentDriverId);
+        });
+
+        verify(driverRepository).findById(nonExistentDriverId);
     }
 }

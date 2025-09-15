@@ -2,7 +2,9 @@ package com.example.driver_service.controller;
 
 import com.example.driver_service.dto.CreateDriverResponse;
 import com.example.driver_service.dto.DriverCreateRequest;
+import com.example.driver_service.dto.DriverProfileResponse;
 import com.example.driver_service.entity.DriverStatus;
+import com.example.driver_service.exception.DriverNotFoundException;
 import com.example.driver_service.exception.EmailAlreadyExistsException;
 import com.example.driver_service.service.DriverService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,9 +17,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 
 @WebMvcTest(DriverController.class)
 class DriverControllerTest {
@@ -80,5 +85,46 @@ class DriverControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("이미 사용중인 이메일입니다."));
+    }
+
+    @Test
+    @DisplayName("GET /api/drivers/{driverId} - 성공")
+    void getDriverProfile_Success() throws Exception {
+        // given (Arrange)
+        long driverId = 1L;
+        DriverProfileResponse mockResponse = new DriverProfileResponse(
+                driverId,
+                "test@example.com",
+                "테스트기사",
+                "010-1234-5678",
+                "12-34-567890-11",
+                "http://example.com/profile.jpg",
+                DriverStatus.ACTIVE,
+                4.8
+        );
+        // Mockito.when() 구문 사용
+        when(driverService.getDriverProfile(driverId)).thenReturn(mockResponse);
+        // when & then (Act & Assert)
+        mockMvc.perform(get("/api/drivers/{driverId}", driverId))
+               .andExpect(status().isOk())
+               .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+               .andExpect(jsonPath("$.id").value(driverId))
+               .andExpect(jsonPath("$.name").value("테스트기사"))
+               .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("GET /api/drivers/{driverId} - 실패 (404 Not Found)")
+    void getDriverProfile_Fail_DriverNotFound() throws Exception {
+        // given (Arrange)
+        long nonExistentDriverId = 99L;
+        // Exception 발생 시에는 .thenThrow() 사용
+        when(driverService.getDriverProfile(anyLong()))
+                .thenThrow(new DriverNotFoundException("해당 ID의 기사를 찾을 수 없습니다. ID: " + nonExistentDriverId));
+
+        // when & then (Act & Assert)
+        mockMvc.perform(get("/api/drivers/{driverId}", nonExistentDriverId))
+               .andExpect(status().isNotFound())
+               .andExpect(jsonPath("$.message").exists());
     }
 }
