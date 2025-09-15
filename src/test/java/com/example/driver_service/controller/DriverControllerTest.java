@@ -15,8 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -233,6 +233,36 @@ class DriverControllerTest {
         mockMvc.perform(put("/api/drivers/{driverId}/vehicle", driverId)
                        .contentType(MediaType.APPLICATION_JSON)
                        .content(objectMapper.writeValueAsString(invalidRequest)))
+               .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /api/drivers/{driverId}/status - 성공 (204 No Content)")
+    void updateDriverStatus_Success() throws Exception {
+        // given
+        long driverId = 1L;
+        UpdateDriverStatusRequest request = new UpdateDriverStatusRequest("AVAILABLE");
+
+        // when & then
+        mockMvc.perform(put("/api/drivers/{driverId}/status", driverId)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
+               .andExpect(status().isNoContent());
+
+        verify(driverService).updateDriverStatus(eq(driverId), any(UpdateDriverStatusRequest.class));
+    }
+
+    @Test
+    @DisplayName("PUT /api/drivers/{driverId}/status - 실패 (유효성 검증 실패)")
+    void updateDriverStatus_Fail_InvalidStatus() throws Exception {
+        // given
+        long driverId = 1L;
+        UpdateDriverStatusRequest request = new UpdateDriverStatusRequest("INVALID_STATUS");
+
+        // when & then
+        mockMvc.perform(put("/api/drivers/{driverId}/status", driverId)
+                       .contentType(MediaType.APPLICATION_JSON)
+                       .content(objectMapper.writeValueAsString(request)))
                .andExpect(status().isBadRequest());
     }
 }

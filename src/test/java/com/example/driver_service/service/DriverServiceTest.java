@@ -6,12 +6,15 @@ import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
 import com.example.driver_service.repository.DriverRepository;
 import com.example.driver_service.repository.VehicleRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -19,8 +22,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DriverServiceTest {
@@ -33,6 +36,12 @@ class DriverServiceTest {
 
     @InjectMocks
     private DriverService driverService;
+
+    @Mock
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Mock
+    private HashOperations<String, Object, Object> hashOperations;
 
     @Test
     @DisplayName("유효한 요청이 오면 운전자를 성공적으로 생성한다")
@@ -260,5 +269,42 @@ class DriverServiceTest {
         assertThat(response.model()).isEqualTo("K5"); // 변경 확인
         assertThat(response.color()).isEqualTo("흰색"); // 변경 확인
         verify(vehicleRepository).findByDriverId(driverId);
+    }
+
+    @Test
+    @DisplayName("기사 운행 상태 변경 성공 - AVAILABLE")
+    void updateDriverStatus_Success_Available() {
+        // given
+        long driverId = 1L;
+        UpdateDriverStatusRequest request = new UpdateDriverStatusRequest("AVAILABLE");
+        String redisKey = "driver_status:" + driverId;
+
+        when(redisTemplate.opsForHash()).thenReturn(hashOperations);
+        when(driverRepository.existsById(driverId)).thenReturn(true);
+
+        // when
+        driverService.updateDriverStatus(driverId, request);
+
+        // then
+        verify(driverRepository).existsById(driverId);
+        verify(hashOperations).put(redisKey, "isAvailable", "1");
+    }
+
+    @Test
+    @DisplayName("기사 운행 상태 변경 실패 - 존재하지 않는 기사")
+    void updateDriverStatus_Fail_DriverNotFound() {
+        // given
+        long driverId = 99L;
+        UpdateDriverStatusRequest request = new UpdateDriverStatusRequest("OFFLINE");
+
+        when(driverRepository.existsById(driverId)).thenReturn(false);
+
+        // when & then
+        assertThrows(DriverNotFoundException.class, () -> {
+            driverService.updateDriverStatus(driverId, request);
+        });
+
+        verify(redisTemplate, never()).opsForHash();
+        verify(hashOperations, never()).put(anyString(), anyString(), anyString());
     }
 }

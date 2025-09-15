@@ -8,6 +8,7 @@ import com.example.driver_service.repository.DriverRepository;
 import com.example.driver_service.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,10 @@ public class DriverService {
 
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private static final String REDIS_KEY_PREFIX = "driver_status:";
+    private static final String HASH_KEY_IS_AVAILABLE = "isAvailable";
 
     @Transactional
     public CreateDriverResponse createDriver(DriverCreateRequest request) {
@@ -93,6 +98,21 @@ public class DriverService {
 
         log.info("{}번 기사의 차량 정보 수정 성공", driverId);
         return VehicleResponse.fromEntity(vehicle);
+    }
+
+    public void updateDriverStatus(Long driverId, UpdateDriverStatusRequest request) {
+        log.info("{}번 기사의 실시간 운행 상태 변경을 시작합니다. 상태: {}", driverId, request.status());
+
+        if (!driverRepository.existsById(driverId)) {
+            throw new DriverNotFoundException("해당 ID의 기사를 찾을 수 없습니다. ID: " + driverId);
+        }
+
+        String redisKey = REDIS_KEY_PREFIX + driverId;
+        String isAvailableValue = "AVAILABLE".equalsIgnoreCase(request.status()) ? "1" : "0";
+
+        redisTemplate.opsForHash().put(redisKey, HASH_KEY_IS_AVAILABLE, isAvailableValue);
+
+        log.info("{}번 기사 운행 상태 Redis 업데이트 성공. Key: {}, Value: {}", driverId, redisKey, isAvailableValue);
     }
 
     private void validateDriverUniqueness(DriverCreateRequest request) {
