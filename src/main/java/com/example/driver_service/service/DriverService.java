@@ -100,6 +100,7 @@ public class DriverService {
         return VehicleResponse.fromEntity(vehicle);
     }
 
+    @Transactional
     public void updateDriverStatus(Long driverId, UpdateDriverStatusRequest request) {
         log.info("{}번 기사의 실시간 운행 상태 변경을 시작합니다. 상태: {}", driverId, request.status());
 
