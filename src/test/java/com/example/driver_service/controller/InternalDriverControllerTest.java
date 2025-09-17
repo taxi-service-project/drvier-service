@@ -28,7 +28,7 @@ class InternalDriverControllerTest {
     @DisplayName("GET /internal/api/drivers/{driverId} - 성공")
     void getDriverInfoForInternal_Success() throws Exception {
         // given
-        long driverId = 1L;
+        String driverId = "a1b2c3d4-e5f6-7890-1234-567890abcdef";
         InternalDriverInfoResponse.VehicleInfo vehicleInfo = new InternalDriverInfoResponse.VehicleInfo("12가3456", "K5");
         InternalDriverInfoResponse mockResponse = new InternalDriverInfoResponse(driverId, "테스트기사", 4.8, vehicleInfo);
 
@@ -37,7 +37,7 @@ class InternalDriverControllerTest {
         // when & then
         mockMvc.perform(get("/internal/api/drivers/{driverId}", driverId))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.id").value(driverId))
+               .andExpect(jsonPath("$.driverId").value(driverId))
                .andExpect(jsonPath("$.name").value("테스트기사"))
                .andExpect(jsonPath("$.vehicle.model").value("K5"));
     }
@@ -46,7 +46,7 @@ class InternalDriverControllerTest {
     @DisplayName("GET /internal/api/drivers/{driverId} - 실패 (404 Not Found)")
     void getDriverInfoForInternal_Fail_NotFound() throws Exception {
         // given
-        long driverId = 99L;
+        String driverId = "non-existent-uuid";
         when(driverService.getInternalDriverInfo(driverId)).thenThrow(new DriverNotFoundException("기사 없음"));
 
         // when & then

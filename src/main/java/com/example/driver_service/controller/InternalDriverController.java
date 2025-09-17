@@ -17,7 +17,7 @@ public class InternalDriverController {
     private final DriverService driverService;
 
     @GetMapping("/{driverId}")
-    public ResponseEntity<InternalDriverInfoResponse> getDriverInfoForInternal(@PathVariable Long driverId) {
+    public ResponseEntity<InternalDriverInfoResponse> getDriverInfoForInternal(@PathVariable String driverId) {
         InternalDriverInfoResponse response = driverService.getInternalDriverInfo(driverId);
         return ResponseEntity.ok(response);
     }

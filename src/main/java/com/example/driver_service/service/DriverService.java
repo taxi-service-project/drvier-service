@@ -116,13 +116,13 @@ public class DriverService {
         log.info("{}번 기사 운행 상태 Redis 업데이트 성공. Key: {}, Value: {}", driverId, redisKey, isAvailableValue);
     }
 
-    public InternalDriverInfoResponse getInternalDriverInfo(Long driverId) {
+    public InternalDriverInfoResponse getInternalDriverInfo(String driverId) {
         log.info("[내부 API] {}번 기사 정보 조회를 시작합니다.", driverId);
 
-        Driver driver = driverRepository.findById(driverId)
+        Driver driver = driverRepository.findByDriverId(driverId)
                                         .orElseThrow(() -> new DriverNotFoundException("해당 ID의 기사를 찾을 수 없습니다. ID: " + driverId));
 
-        Vehicle vehicle = vehicleRepository.findByDriverId(driverId)
+        Vehicle vehicle = vehicleRepository.findByDriverId(driver.getId())
                                            .orElseThrow(() -> new VehicleNotFoundException("해당 기사의 차량 정보를 찾을 수 없습니다. 기사 ID: " + driverId));
 
         log.info("[내부 API] {}번 기사 정보 조회 성공", driverId);

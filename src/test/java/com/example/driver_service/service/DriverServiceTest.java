@@ -311,41 +311,41 @@ class DriverServiceTest {
     @DisplayName("내부용 기사 정보 조회 성공")
     void getInternalDriverInfo_Success() {
         // given
-        long driverId = 1L;
+        String driverUuid = "a1b2c3d4-e5f6-7890-1234-567890abcdef";
+        Long driverInternalId = 1L;
+
         Driver mockDriver = Driver.builder().name("테스트기사").build();
-        ReflectionTestUtils.setField(mockDriver, "id", driverId);
-        ReflectionTestUtils.setField(mockDriver, "ratingAvg", 4.8);
+        ReflectionTestUtils.setField(mockDriver, "id", driverInternalId);
+        ReflectionTestUtils.setField(mockDriver, "driverId", driverUuid);
 
         Vehicle mockVehicle = Vehicle.builder()
                                      .driver(mockDriver).model("K5").licensePlate("12가3456").build();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(mockDriver));
-        when(vehicleRepository.findByDriverId(driverId)).thenReturn(Optional.of(mockVehicle));
+        when(driverRepository.findByDriverId(driverUuid)).thenReturn(Optional.of(mockDriver));
+        when(vehicleRepository.findByDriverId(driverInternalId)).thenReturn(Optional.of(mockVehicle));
 
         // when
-        InternalDriverInfoResponse response = driverService.getInternalDriverInfo(driverId);
+        InternalDriverInfoResponse response = driverService.getInternalDriverInfo(driverUuid);
 
         // then
-        assertThat(response.id()).isEqualTo(driverId);
+        assertThat(response.driverId()).isEqualTo(driverUuid);
         assertThat(response.name()).isEqualTo("테스트기사");
-        assertThat(response.ratingAvg()).isEqualTo(4.8);
         assertThat(response.vehicle().model()).isEqualTo("K5");
-        assertThat(response.vehicle().licensePlate()).isEqualTo("12가3456");
 
-        verify(driverRepository).findById(driverId);
-        verify(vehicleRepository).findByDriverId(driverId);
+        verify(driverRepository).findByDriverId(driverUuid);
+        verify(vehicleRepository).findByDriverId(driverInternalId);
     }
 
     @Test
     @DisplayName("내부용 기사 정보 조회 실패 - 기사 정보 없음")
     void getInternalDriverInfo_Fail_DriverNotFound() {
         // given
-        long driverId = 99L;
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        String driverUuid = "non-existent-uuid";
+        when(driverRepository.findByDriverId(driverUuid)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(DriverNotFoundException.class, () -> {
-            driverService.getInternalDriverInfo(driverId);
+            driverService.getInternalDriverInfo(driverUuid);
         });
 
         verify(vehicleRepository, never()).findByDriverId(anyLong());

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "drivers")
 @Getter
@@ -15,6 +17,9 @@ public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, updatable = false, unique = true)
+    private String driverId;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -43,6 +48,7 @@ public class Driver {
 
     @Builder
     public Driver(String email, String password, String name, String phoneNumber, String licenseNumber, String profileImageUrl) {
+        this.driverId = UUID.randomUUID().toString();
         this.email = email;
         this.password = password;
         this.name = name;
