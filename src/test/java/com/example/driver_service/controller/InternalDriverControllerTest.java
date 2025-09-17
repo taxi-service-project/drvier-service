@@ -1,6 +1,6 @@
 package com.example.driver_service.controller;
 
-import com.example.driver_service.dto.InternalDriverInfoResponse;
+import com.example.driver_service.dto.response.InternalDriverInfoResponse;
 import com.example.driver_service.exception.DriverNotFoundException;
 import com.example.driver_service.service.DriverService;
 import org.junit.jupiter.api.DisplayName;

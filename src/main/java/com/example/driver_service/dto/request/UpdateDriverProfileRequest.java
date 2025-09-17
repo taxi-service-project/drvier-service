@@ -1,4 +1,4 @@
-package com.example.driver_service.dto;
+package com.example.driver_service.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

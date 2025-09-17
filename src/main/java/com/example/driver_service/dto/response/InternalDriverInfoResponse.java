@@ -1,4 +1,4 @@
-package com.example.driver_service.dto;
+package com.example.driver_service.dto.response;
 
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;

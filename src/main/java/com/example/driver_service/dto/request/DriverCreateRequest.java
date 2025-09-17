@@ -1,4 +1,4 @@
-package com.example.driver_service.dto;
+package com.example.driver_service.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

@@ -1,6 +1,13 @@
 package com.example.driver_service.service;
 
-import com.example.driver_service.dto.*;
+import com.example.driver_service.dto.request.DriverCreateRequest;
+import com.example.driver_service.dto.request.UpdateDriverProfileRequest;
+import com.example.driver_service.dto.request.UpdateDriverStatusRequest;
+import com.example.driver_service.dto.request.UpdateVehicleRequest;
+import com.example.driver_service.dto.response.CreateDriverResponse;
+import com.example.driver_service.dto.response.DriverProfileResponse;
+import com.example.driver_service.dto.response.InternalDriverInfoResponse;
+import com.example.driver_service.dto.response.VehicleResponse;
 import com.example.driver_service.entity.Driver;
 import com.example.driver_service.entity.Vehicle;
 import com.example.driver_service.exception.*;
