@@ -44,15 +44,16 @@ public class DriverService {
                               .phoneNumber(request.phoneNumber())
                               .licenseNumber(request.licenseNumber())
                               .build();
-        Driver savedDriver = driverRepository.save(driver);
 
         Vehicle vehicle = Vehicle.builder()
-                                 .driver(savedDriver)
+                                 .driver(driver)
                                  .licensePlate(request.vehicle().licensePlate())
                                  .model(request.vehicle().model())
                                  .color(request.vehicle().color())
                                  .build();
-        vehicleRepository.save(vehicle);
+
+        driver.addVehicle(vehicle);
+        Driver savedDriver = driverRepository.save(driver);
 
         return CreateDriverResponse.fromEntity(savedDriver);
     }

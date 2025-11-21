@@ -41,4 +41,8 @@ public class Vehicle {
         this.model = model;
         this.color = color;
     }
+
+    public void setDriver(Driver driver) {
+        this.driver = driver;
+    }
 }

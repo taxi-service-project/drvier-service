@@ -46,6 +46,9 @@ public class Driver {
     @Column(nullable = false)
     private Double ratingAvg;
 
+    @OneToOne(mappedBy = "driver", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Vehicle vehicle;
+
     @Builder
     public Driver(String email, String password, String name, String phoneNumber, String licenseNumber, String profileImageUrl) {
         this.driverId = UUID.randomUUID().toString();
@@ -64,5 +67,13 @@ public class Driver {
         this.profileImageUrl = profileImageUrl;
         this.licenseNumber = licenseNumber;
     }
+
+    public void addVehicle(Vehicle vehicle) {
+        this.vehicle = vehicle;
+        if (vehicle != null) {
+            vehicle.setDriver(this);
+        }
+    }
+
 }
 
