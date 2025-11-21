@@ -5,17 +5,18 @@ spring:
   application:
     name: driver-service
   datasource:
-    url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: 
-  h2:
-    console:
-      enabled: true
+    url:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+
   data:
     redis:
-      host: localhost
-      port: 6379
+      host:
+      port:
 
 eureka:
   client:
