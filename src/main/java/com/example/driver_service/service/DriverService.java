@@ -16,6 +16,7 @@ import com.example.driver_service.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +25,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional(readOnly = true)
 public class DriverService {
+    
+    private static final String REDIS_KEY_PREFIX = "driver_status:";
+    private static final String HASH_KEY_IS_AVAILABLE = "isAvailable";
 
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
-    private final RedisTemplate<String, String> redisTemplate;
-
-    private static final String REDIS_KEY_PREFIX = "driver_status:";
-    private static final String HASH_KEY_IS_AVAILABLE = "isAvailable";
+    
+    private final StringRedisTemplate redisTemplate; // 영속화 사용 레디스
 
     @Transactional
     public CreateDriverResponse createDriver(DriverCreateRequest request) {
