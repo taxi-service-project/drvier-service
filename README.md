@@ -33,3 +33,11 @@
 ### 1. JPA 연관관계 최적화
 * **Cascade:** 기사(`Driver`)와 차량(`Vehicle`)의 1:1 관계에서 **`CascadeType.ALL`**과 **`orphanRemoval`**을 적용하여, 기사 엔티티의 생명주기만 관리하면 차량 데이터도 정합성 있게 관리되도록 설계했습니다.
 * **Fetch Join:** 목록 조회 시 발생할 수 있는 **N+1 문제**를 방지하기 위해 `Fetch Join` 쿼리를 적용하여 조회 성능을 최적화했습니다.
+
+
+
+
+----------
+
+## 아키텍쳐
+<img width="2324" height="1686" alt="Image" src="https://github.com/user-attachments/assets/81a25ff9-ee02-4996-80d3-f9217c3b7750" />
