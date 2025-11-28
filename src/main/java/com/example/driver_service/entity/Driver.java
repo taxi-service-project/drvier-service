@@ -24,9 +24,6 @@ public class Driver {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private String password;
-
     @Column(nullable = false, length = 50)
     private String name;
 
@@ -50,10 +47,9 @@ public class Driver {
     private Vehicle vehicle;
 
     @Builder
-    public Driver(String email, String password, String name, String phoneNumber, String licenseNumber, String profileImageUrl) {
+    public Driver(String email, String name, String phoneNumber, String licenseNumber, String profileImageUrl) {
         this.driverId = UUID.randomUUID().toString();
         this.email = email;
-        this.password = password;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.licenseNumber = licenseNumber;

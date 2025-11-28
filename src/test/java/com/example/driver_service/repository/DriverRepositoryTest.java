@@ -24,7 +24,6 @@ class DriverRepositoryTest {
         // given
         Driver driver = Driver.builder()
                 .email("test@example.com")
-                .password("password")
                 .name("홍길동")
                 .phoneNumber("010-1234-5678")
                 .licenseNumber("12-3456-7890")
@@ -58,7 +57,6 @@ class DriverRepositoryTest {
         // given
         Driver driver = Driver.builder()
                 .email("test@example.com")
-                .password("password")
                 .name("홍길동")
                 .phoneNumber("010-1234-5678")
                 .licenseNumber("12-3456-7890")
@@ -79,7 +77,6 @@ class DriverRepositoryTest {
         // given
         Driver driver = Driver.builder()
                 .email("test@example.com")
-                .password("password")
                 .name("홍길동")
                 .phoneNumber("010-1234-5678")
                 .licenseNumber("12-3456-7890")

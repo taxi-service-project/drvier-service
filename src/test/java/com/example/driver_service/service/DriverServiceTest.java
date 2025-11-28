@@ -140,7 +140,6 @@ class DriverServiceTest {
         long driverId = 1L;
         Driver mockDriver = Driver.builder()
                                   .email("test@example.com")
-                                  .password("password")
                                   .name("테스트기사")
                                   .phoneNumber("010-1234-5678")
                                   .licenseNumber("12-34-567890-11")
@@ -182,7 +181,6 @@ class DriverServiceTest {
         long driverId = 1L;
         Driver mockDriver = Driver.builder()
                                   .email("test@example.com")
-                                  .password("password")
                                   .name("테스트기사")
                                   .phoneNumber("010-0000-0000") // 변경 전 번호
                                   .licenseNumber("00-00-000000-00")

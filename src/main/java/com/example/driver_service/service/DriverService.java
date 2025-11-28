@@ -15,7 +15,6 @@ import com.example.driver_service.repository.DriverRepository;
 import com.example.driver_service.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +40,6 @@ public class DriverService {
 
         Driver driver = Driver.builder()
                               .email(request.email())
-                              .password(request.password())
                               .name(request.name())
                               .phoneNumber(request.phoneNumber())
                               .licenseNumber(request.licenseNumber())
