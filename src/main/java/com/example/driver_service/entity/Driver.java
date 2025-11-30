@@ -21,6 +21,9 @@ public class Driver {
     @Column(nullable = false, updatable = false, unique = true)
     private String driverId;
 
+    @Column(nullable = false, updatable = false, unique = true)
+    private String userId;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -47,8 +50,9 @@ public class Driver {
     private Vehicle vehicle;
 
     @Builder
-    public Driver(String email, String name, String phoneNumber, String licenseNumber, String profileImageUrl) {
+    public Driver(String userId, String email, String name, String phoneNumber, String licenseNumber, String profileImageUrl) {
         this.driverId = UUID.randomUUID().toString();
+        this.userId = userId;
         this.email = email;
         this.name = name;
         this.phoneNumber = phoneNumber;

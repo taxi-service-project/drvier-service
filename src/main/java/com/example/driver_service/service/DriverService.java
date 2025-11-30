@@ -1,5 +1,6 @@
 package com.example.driver_service.service;
 
+import com.example.driver_service.client.UserServiceClient;
 import com.example.driver_service.dto.request.DriverCreateRequest;
 import com.example.driver_service.dto.request.UpdateDriverProfileRequest;
 import com.example.driver_service.dto.request.UpdateDriverStatusRequest;
@@ -18,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
@@ -30,32 +34,53 @@ public class DriverService {
 
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
-    
+    private final UserServiceClient userServiceClient;
+
+    private final TransactionTemplate transactionTemplate;
+
     private final StringRedisTemplate redisTemplate; // 영속화 사용 레디스
 
-    @Transactional
-    public CreateDriverResponse createDriver(DriverCreateRequest request) {
+    public Mono<CreateDriverResponse> createDriver(DriverCreateRequest request) {
 
         validateDriverUniqueness(request);
 
-        Driver driver = Driver.builder()
-                              .email(request.email())
-                              .name(request.name())
-                              .phoneNumber(request.phoneNumber())
-                              .licenseNumber(request.licenseNumber())
-                              .build();
+        UserServiceClient.UserCreateRequest userRequest = new UserServiceClient.UserCreateRequest(
+                request.email(),
+                request.password(),
+                request.name(),
+                request.phoneNumber(),
+                "ROLE_DRIVER"
+        );
 
-        Vehicle vehicle = Vehicle.builder()
-                                 .driver(driver)
-                                 .licensePlate(request.vehicle().licensePlate())
-                                 .model(request.vehicle().model())
-                                 .color(request.vehicle().color())
-                                 .build();
+        return userServiceClient.createUser(userRequest)
+                                .flatMap(userResponse -> {
 
-        driver.addVehicle(vehicle);
-        Driver savedDriver = driverRepository.save(driver);
+                                    Driver driver = Driver.builder()
+                                                          .userId(userResponse.userId())
+                                                          .email(request.email())
+                                                          .name(request.name())
+                                                          .phoneNumber(request.phoneNumber())
+                                                          .licenseNumber(request.licenseNumber())
+                                                          .profileImageUrl(request.profileImageUrl())
+                                                          .build();
 
-        return CreateDriverResponse.fromEntity(savedDriver);
+                                    Vehicle vehicle = Vehicle.builder()
+                                                             .driver(driver)
+                                                             .licensePlate(request.vehicle().licensePlate())
+                                                             .model(request.vehicle().model())
+                                                             .color(request.vehicle().color())
+                                                             .build();
+
+                                    driver.addVehicle(vehicle);
+
+                                    return Mono.fromCallable(() ->
+                                                       transactionTemplate.execute(status -> {
+                                                           return driverRepository.save(driver);
+                                                       })
+                                               )
+                                               .subscribeOn(Schedulers.boundedElastic());
+                                })
+                                .map(CreateDriverResponse::fromEntity);
     }
 
     public DriverProfileResponse getDriverProfile(Long driverId) {

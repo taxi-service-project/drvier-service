@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("api/drivers")
@@ -22,9 +23,9 @@ public class DriverController {
     private final DriverService driverService;
 
     @PostMapping
-    public ResponseEntity<CreateDriverResponse> createDriver(@Valid @RequestBody DriverCreateRequest request) {
-        CreateDriverResponse response = driverService.createDriver(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public Mono<ResponseEntity<CreateDriverResponse>> createDriver(@Valid @RequestBody DriverCreateRequest request) {
+        return driverService.createDriver(request)
+                            .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 
     @GetMapping("/{driverId}")

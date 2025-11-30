@@ -18,6 +18,22 @@ spring:
       host:
       port:
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      user-service:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 10
+        sliding-window-type: count-based
+        sliding-window-size: 20
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+  timelimiter:
+    instances:
+      user-service:
+        timeout-duration: 3s
+        cancel-running-future: true
+
 eureka:
   client:
     register-with-eureka: true

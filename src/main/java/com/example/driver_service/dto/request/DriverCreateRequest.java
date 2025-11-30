@@ -21,6 +21,9 @@ public record DriverCreateRequest(
         @NotBlank(message = "면허 번호는 필수입니다.")
         String licenseNumber,
 
+        @NotBlank(message = "프로밀 이지미는 필수입니다.")
+        String profileImageUrl,
+
         @Valid
         VehicleInfo vehicle
 ) {

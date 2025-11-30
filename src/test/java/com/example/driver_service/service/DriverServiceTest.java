@@ -1,5 +1,6 @@
 package com.example.driver_service.service;
 
+import com.example.driver_service.client.UserServiceClient;
 import com.example.driver_service.dto.request.DriverCreateRequest;
 import com.example.driver_service.dto.request.UpdateDriverProfileRequest;
 import com.example.driver_service.dto.request.UpdateDriverStatusRequest;
@@ -20,16 +21,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Optional;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 class DriverServiceTest {
@@ -40,37 +47,69 @@ class DriverServiceTest {
     @Mock
     private VehicleRepository vehicleRepository;
 
+    @Mock
+    private UserServiceClient userServiceClient;
+
+    @Mock
+    private TransactionTemplate transactionTemplate;
+
     @InjectMocks
     private DriverService driverService;
 
     @Mock
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
     @Mock
     private HashOperations<String, Object, Object> hashOperations;
 
     @Test
-    @DisplayName("유효한 요청이 오면 운전자를 성공적으로 생성한다")
-    void givenValidRequest_whenCreateDriver_thenCreatesDriverSuccessfully() {
+    @DisplayName("유효한 요청이 오면 WebFlux 흐름을 타고 운전자를 성공적으로 생성한다")
+    void createDriver_Success() {
         // given
         DriverCreateRequest.VehicleInfo vehicleInfo = new DriverCreateRequest.VehicleInfo("12가3456", "K5", "검정");
-        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", vehicleInfo);
+        DriverCreateRequest request = new DriverCreateRequest(
+                "test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", "http://img", vehicleInfo
+        );
 
         when(driverRepository.existsByEmail(any())).thenReturn(false);
         when(driverRepository.existsByPhoneNumber(any())).thenReturn(false);
         when(driverRepository.existsByLicenseNumber(any())).thenReturn(false);
-        when(vehicleRepository.existsByLicensePlate(any())).thenReturn(false);
 
-        Driver savedDriver = Driver.builder().email(request.email()).build();
+        // UserServiceClient Mock
+        UserServiceClient.UserCreateResponse userResponse = new UserServiceClient.UserCreateResponse(1L, "user-uuid-123", "test@example.com", "홍길동");
+        when(userServiceClient.createUser(any())).thenReturn(Mono.just(userResponse));
+
+        // TransactionTemplate Mock
+        when(transactionTemplate.execute(any())).thenAnswer(invocation -> {
+            TransactionCallback<Driver> callback = invocation.getArgument(0);
+            return callback.doInTransaction(null);
+        });
+
+        Driver savedDriver = Driver.builder()
+                                   .userId("user-uuid-123")
+                                   .email(request.email())
+                                   .name(request.name())
+                                   .build();
+
+        ReflectionTestUtils.setField(savedDriver, "id", 1L);
+
         when(driverRepository.save(any(Driver.class))).thenReturn(savedDriver);
 
         // when
-        CreateDriverResponse response = driverService.createDriver(request);
+        Mono<CreateDriverResponse> responseMono = driverService.createDriver(request);
 
         // then
-        assertThat(response.email()).isEqualTo(request.email());
+        StepVerifier.create(responseMono)
+                    .expectNextMatches(response ->
+                            response.email().equals(request.email()) &&
+                                    response.id().equals(1L)
+                    )
+                    .verifyComplete();
+
+        // 검증
+        verify(userServiceClient).createUser(any());
+        verify(transactionTemplate).execute(any());
         verify(driverRepository).save(any(Driver.class));
-        verify(vehicleRepository).save(any(Vehicle.class));
     }
 
     @Test
@@ -78,7 +117,7 @@ class DriverServiceTest {
     void givenDuplicateEmail_whenCreateDriver_thenThrowsEmailAlreadyExistsException() {
         // given
         DriverCreateRequest.VehicleInfo vehicleInfo = new DriverCreateRequest.VehicleInfo("12가3456", "K5", "검정");
-        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", vehicleInfo);
+        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", "profileImageUrl", vehicleInfo);
 
         when(driverRepository.existsByEmail("test@example.com")).thenReturn(true);
 
@@ -93,7 +132,7 @@ class DriverServiceTest {
     void givenDuplicatePhoneNumber_whenCreateDriver_thenThrowsPhoneNumberAlreadyExistsException() {
         // given
         DriverCreateRequest.VehicleInfo vehicleInfo = new DriverCreateRequest.VehicleInfo("12가3456", "K5", "검정");
-        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", vehicleInfo);
+        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", "profileImageUrl", vehicleInfo);
 
         when(driverRepository.existsByPhoneNumber("010-1234-5678")).thenReturn(true);
 
@@ -108,7 +147,7 @@ class DriverServiceTest {
     void givenDuplicateLicenseNumber_whenCreateDriver_thenThrowsLicenseNumberAlreadyExistsException() {
         // given
         DriverCreateRequest.VehicleInfo vehicleInfo = new DriverCreateRequest.VehicleInfo("12가3456", "K5", "검정");
-        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", vehicleInfo);
+        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", "profileImageUrl", vehicleInfo);
 
         when(driverRepository.existsByLicenseNumber("12-3456-7890")).thenReturn(true);
 
@@ -123,7 +162,7 @@ class DriverServiceTest {
     void givenDuplicateLicensePlate_whenCreateDriver_thenThrowsLicensePlateAlreadyExistsException() {
         // given
         DriverCreateRequest.VehicleInfo vehicleInfo = new DriverCreateRequest.VehicleInfo("12가3456", "K5", "검정");
-        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", vehicleInfo);
+        DriverCreateRequest request = new DriverCreateRequest("test@example.com", "password", "홍길동", "010-1234-5678", "12-3456-7890", "profileImageUrl", vehicleInfo);
 
         when(vehicleRepository.existsByLicensePlate("12가3456")).thenReturn(true);
 
