@@ -23,13 +23,16 @@ class DriverRepositoryTest {
     void givenDriverExists_whenExistsByEmail_thenReturnsTrue() {
         // given
         Driver driver = Driver.builder()
-                .email("test@example.com")
-                .name("홍길동")
-                .phoneNumber("010-1234-5678")
-                .licenseNumber("12-3456-7890")
-                .profileImageUrl("url")
-                .build();
+                              .userId("user-1001")
+                              .email("test@example.com")
+                              .name("홍길동")
+                              .phoneNumber("010-1234-5678")
+                              .licenseNumber("12-3456-7890")
+                              .profileImageUrl("https://profile.url/img.jpg")
+                              .build();
+
         entityManager.persist(driver);
+        entityManager.flush();
 
         // when
         boolean result = driverRepository.existsByEmail("test@example.com");
@@ -42,10 +45,10 @@ class DriverRepositoryTest {
     @DisplayName("존재하지 않는 이메일로 조회하면 false를 반환한다")
     void givenDriverNotExists_whenExistsByEmail_thenReturnsFalse() {
         // given
-        // 데이터 없음
+        // 데이터 저장 없음
 
         // when
-        boolean result = driverRepository.existsByEmail("test@example.com");
+        boolean result = driverRepository.existsByEmail("ghost@example.com");
 
         // then
         assertThat(result).isFalse();
@@ -56,16 +59,19 @@ class DriverRepositoryTest {
     void givenDriverExists_whenExistsByPhoneNumber_thenReturnsTrue() {
         // given
         Driver driver = Driver.builder()
-                .email("test@example.com")
-                .name("홍길동")
-                .phoneNumber("010-1234-5678")
-                .licenseNumber("12-3456-7890")
-                .profileImageUrl("url")
-                .build();
+                              .userId("user-1002")
+                              .email("phone@example.com")
+                              .name("김철수")
+                              .phoneNumber("010-9876-5432")
+                              .licenseNumber("99-8888-7777")
+                              .profileImageUrl("url")
+                              .build();
+
         entityManager.persist(driver);
+        entityManager.flush();
 
         // when
-        boolean result = driverRepository.existsByPhoneNumber("010-1234-5678");
+        boolean result = driverRepository.existsByPhoneNumber("010-9876-5432");
 
         // then
         assertThat(result).isTrue();
@@ -76,16 +82,19 @@ class DriverRepositoryTest {
     void givenDriverExists_whenExistsByLicenseNumber_thenReturnsTrue() {
         // given
         Driver driver = Driver.builder()
-                .email("test@example.com")
-                .name("홍길동")
-                .phoneNumber("010-1234-5678")
-                .licenseNumber("12-3456-7890")
-                .profileImageUrl("url")
-                .build();
+                              .userId("user-1003")
+                              .email("license@example.com")
+                              .name("이영희")
+                              .phoneNumber("010-5555-4444")
+                              .licenseNumber("11-2222-3333")
+                              .profileImageUrl("url")
+                              .build();
+
         entityManager.persist(driver);
+        entityManager.flush();
 
         // when
-        boolean result = driverRepository.existsByLicenseNumber("12-3456-7890");
+        boolean result = driverRepository.existsByLicenseNumber("11-2222-3333");
 
         // then
         assertThat(result).isTrue();

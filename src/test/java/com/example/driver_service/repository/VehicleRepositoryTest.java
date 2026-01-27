@@ -24,6 +24,7 @@ class VehicleRepositoryTest {
     void givenVehicleExists_whenExistsByLicensePlate_thenReturnsTrue() {
         // given
         Driver driver = Driver.builder()
+                .userId("user-1002")
                 .email("test@example.com")
                 .name("홍길동")
                 .phoneNumber("010-1234-5678")

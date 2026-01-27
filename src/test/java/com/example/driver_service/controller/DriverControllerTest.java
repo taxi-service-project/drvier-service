@@ -4,7 +4,6 @@ import com.example.driver_service.dto.request.DriverCreateRequest;
 import com.example.driver_service.dto.request.UpdateDriverProfileRequest;
 import com.example.driver_service.dto.request.UpdateDriverStatusRequest;
 import com.example.driver_service.dto.request.UpdateVehicleRequest;
-import com.example.driver_service.dto.response.CreateDriverResponse;
 import com.example.driver_service.dto.response.DriverProfileResponse;
 import com.example.driver_service.dto.response.VehicleResponse;
 import com.example.driver_service.entity.DriverStatus;
@@ -20,8 +19,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -41,8 +38,6 @@ class DriverControllerTest {
 
     @MockitoBean
     private DriverService driverService;
-
-
 
     @Test
     @DisplayName("필수 입력값이 누락되면 400 BadRequest를 응답한다")
