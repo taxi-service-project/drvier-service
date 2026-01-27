@@ -12,7 +12,7 @@ import java.util.UUID;
 @Table(name = "drivers")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Driver {
+public class Driver extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
