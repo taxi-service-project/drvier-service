@@ -1,4 +1,4 @@
-name: user-service-ci-cd
+name: driver-service-ci-cd
 on:
   pull_request:
     types: [opened, synchronize, closed]
